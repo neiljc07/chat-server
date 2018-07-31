@@ -19,46 +19,59 @@ con.connect(function(err) {
  
 io.on('connection', (socket) => {
   socket.on('get-messages', (params) => {
-    var sql = `SELECT a.*, c.uri
+    var sql = `SELECT a.*, b.name as username, c.uri
               FROM my_class_chat a
               INNER JOIN users b ON
                 b.uid = a.user_id
               LEFT JOIN file_managed c ON
-                c.fid = a.picture
+                c.fid = b.picture
               WHERE a.section = ?
-              ORDER BY a.date
+              ORDER BY a.date DESC
               LIMIT ? OFFSET ?`;
 
     con.query(sql, [params.section, params.limit, params.offset], function (err, result) {
       if (err) {
-        io.emit('error', err);
+        io.emit('error-' + params.user, err);
       } else {
-        io.emit('messages', result);
+        io.emit('messages-' + params.user, result);
       }
     });
   });
 
   socket.on('add-message', (message) => {
-    var sql = `SELECT * FROM users WHERE uid = ?`;
+    var sql = `SELECT a.*, b.uri 
+              FROM users a
+              LEFT JOIN file_managed b ON
+                b.fid = a.picture
+              WHERE a.uid = ?`;
+    
     con.query(sql, [message.user_id], function(err, result) {
       if (err) {
-        io.emit('error', err);
+        err.error = message.index;
+        io.emit('error-add-message-' + message.user_id, err);
       } else {
         if(result.length > 0) {
           var user = result[0];
-          sql = `INSERT INTO my_class_chat (username, user_id, message, date, section)
-                VALUES (?, ?, ?, NOW(), ?)`;
+          message.date = new Date();
 
-          con.query(sql, [user.name, user.uid, message.message, message.section], function(err, result) {
+          sql = `INSERT INTO my_class_chat (user_id, message, date, section)
+                VALUES (?, ?, ?, ?)`;
+
+          con.query(sql, [user.uid, message.message, message.date, message.section], function(err, result) {
             if (err) {
-              io.emit('error-add-message', err);
+              err.error = message.index;
+              io.emit('error-add-message-' + message.user_id, err);
             } else {
               message.chat_id = result.insertId;
-              io.emit('message', message);
+              message.uri = user.uri;
+              io.emit('message-' + message.section, message);
             }
           });
         } else {
-          io.emit('error-add-message', 'User Not Found.');
+          io.emit('error-add-message-' + message.user_id, {
+            error : message.index,
+            message : 'User Not Found'
+          });
         }
       }
     });
