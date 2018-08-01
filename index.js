@@ -94,5 +94,5 @@ io.on('connection', (socket) => {
 var port = process.env.PORT || 3001;
  
 http.listen(port, function(){
-  console.log('listening in http://localhost:' + port);
+  console.log('listening in http://192.168.254.142:' + port);
 });
