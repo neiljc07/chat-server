@@ -3,13 +3,21 @@ let app = require('express')();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
 
+// Dev
 // Connect to mysql
+// var con = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "",
+//   database: 'feu'
+// });
+
+// Prod
 var con = mysql.createConnection({
   host: "localhost",
-  user: "root",
-  password: "",
-  port: 33065,
-  database: 'feu'
+  user: "feunrmfs_user",
+  password: "3!Cur#n!JP1[",
+  database: 'feunrmfs_db'
 });
 
 con.connect(function(err) {
@@ -76,23 +84,14 @@ io.on('connection', (socket) => {
       }
     });
   });
-
-  // socket.on('disconnect', function() {
-  //   io.emit('users-changed', {user: socket.nickname, event: 'left'});   
-  // });
- 
-  // socket.on('set-nickname', (nickname) => {
-  //   socket.nickname = nickname;
-  //   io.emit('users-changed', {user: nickname, event: 'joined'});    
-  // });
-  
-  // socket.on('add-message', (message) => {
-  //   io.emit('message', {text: message.text, from: socket.nickname, created: new Date()});    
-  // });
 });
  
-var port = process.env.PORT || 3001;
+// Dev
+//var port = process.env.PORT || 3001;
+
+// Prod
+var port = 8080;
  
 http.listen(port, function(){
-  console.log('listening in http://192.168.254.142:' + port);
+  console.log('listening in http://shinraserver11.com:' + port);
 });
