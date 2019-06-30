@@ -15,9 +15,9 @@ let io = require('socket.io')(http);
 // Prod
 var con = mysql.createConnection({
   host: "localhost",
-  user: "",
-  password: "",
-  database: ''
+  user: "user",
+  password: "password",
+  database: "db"
 });
 
 con.connect(function(err) {
